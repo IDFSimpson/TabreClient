@@ -1,0 +1,3 @@
+rootProject.name = 'tab_reminder_rn_client'
+
+include ':app'
