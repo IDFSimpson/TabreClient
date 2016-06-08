@@ -15,7 +15,8 @@ import {
   View
 } from 'react-native';
 
-var REQUEST_URL = 'http://192.168.0.11:3000/api/v1/bookmarks/';
+// var REQUEST_URL = 'http://192.168.0.11:3000/api/v1/bookmarks/';
+var REQUEST_URL = 'http://10.0.0.13:3000/api/v1/bookmarks/';
 // var REQUEST_URL = 'http://b50-80.local:3000/api/v1/bookmarks/';
 
 var _navigator;
@@ -34,16 +35,20 @@ class tab_reminder_rn_client extends Component {
       return <BookmarksIndex navigator={navigationOperations} />
     }
     else if (route.name === 'bookmarkScreen') {
+      var fetchAction = null;
       return (
         <View style={{flex: 1}}>
           <ToolbarAndroid
-            actions={[]}
             navIcon={require('image!android_back_white')}
             onIconClicked={navigationOperations.pop}
+            actions={toolbarActions}
+            onActionSelected={this._onActionSelected.bind(this)}
             style={styles.toolbar}
             titleColor="white"
-            title={route.bookmarkName} />
-          <BookmarkScreen navigator={navigationOperations} bookmark={route.bookmark} />
+            title={route.bookmarkName}
+            navigator={navigationOperations}
+            fetchAction={fetchAction} />
+          <BookmarkScreen navigator={navigationOperations} bookmark={route.bookmark} method={this.state} />
         </View>
       );
     }
@@ -58,6 +63,21 @@ class tab_reminder_rn_client extends Component {
       />
     );
   }
+
+  _onActionSelected(position) {
+    console.log('Selected ' + toolbarActions[position].title);
+    switch (toolbarActions[position].title) {
+      case ("Snooze"):
+        this.setState({fetchAction: 'SNOOZE'});
+        break;
+      case ("Remove Bookmark"):
+        this.setState({fetchAction: 'DELETE'});
+        break;
+      default:
+        console.log('Fall through');
+    }
+  }
+
 }
 
 
@@ -121,12 +141,30 @@ class BookmarksIndex extends Component {
   }
 }
 
+
+
 class BookmarkScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
       bookmark: null,
     };
+  }
+
+  componentWillReceiveProps(){
+    console.log('componentWillReceiveProps');
+    this.props.method && console.log(this.props.method);
+    if (this.props.method && this.props.method.fetchAction === 'POST') {
+      this.postData();
+    } else if (this.props.method && this.props.method.fetchAction === 'PATCH') {
+      this.patch();
+    } else if (this.props.method && this.props.method.fetchAction === 'SNOOZE') {
+      this.patch();
+    } else if  (this.props.method && this.props.method.fetchAction === 'DELETE') {
+      this.deleteBookmark();
+    } else {
+      this.fetchData();
+    }
   }
 
   componentDidMount() { this.fetchData(); }
@@ -140,6 +178,56 @@ class BookmarkScreen extends Component {
       });
     })
     .done();
+  }
+
+  postData() {
+    fetch(REQUEST_URL + this.props.bookmark, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+         firstParam: 'yourValue',
+         secondParam: 'yourOtherValue',
+      })
+    })
+  }
+  patchData() {
+    fetch(REQUEST_URL + this.props.bookmark, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+         firstParam: 'yourValue',
+         secondParam: 'yourOtherValue',
+      })
+    })
+  }
+  patchSnooze() {
+    fetch(REQUEST_URL + this.props.bookmark, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+         snooze_until: this.props.bookmark.snooze_until,
+      })
+    })
+  }
+
+  deleteBookmark() {
+    console.log("deleting bookmark");
+    fetch(REQUEST_URL + this.props.bookmark, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    }).then(_navigator.pop())
   }
 
   render() {
@@ -171,6 +259,18 @@ class BookmarkScreen extends Component {
     );
   }
 }
+
+var toolbarActions = [
+  {title: 'Create', icon: require('image!ic_create_black_48dp'), show: 'always'},
+  {title: 'Snooze', icon: require('image!ic_schedule_black_48dp'), show: 'always'},
+  {title: 'View Website'},
+  {title: 'Refresh'},
+  {title: 'Share Link'},
+  {title: 'Make Note'},
+  {title: 'Add Tag'},
+  {title: 'Remove Bookmark'},
+  {title: 'Settings', icon: require('image!ic_settings_black_48dp'), show: 'always'},
+];
 
 const styles = StyleSheet.create({
   container: {
