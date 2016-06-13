@@ -12,6 +12,7 @@ import {
   ToolbarAndroid,
   TouchableHighlight,
   WebView,
+  DatePickerAndroid,
   View
 } from 'react-native';
 
@@ -228,6 +229,23 @@ class BookmarkScreen extends Component {
         'Content-Type': 'application/json',
       },
     }).then(_navigator.pop())
+  }
+
+  async showPicker(stateKey, options) {
+    try {
+      var newState = {};
+      const {action, year, month, day} = await DatePickerAndroid.open(options);
+      if (action === DatePickerAndroid.dismissedAction) {
+        newState[stateKey + 'Text'] = 'dismissed';
+      } else {
+        var date = new Date(year, month, day);
+        newState[stateKey + 'Text'] = date.toLocaleDateString();
+        newState[stateKey + 'Date'] = date;
+      }
+      this.setState(newState);
+    } catch ({code, message}) {
+      console.warn(`Error in example '${stateKey}': `, message);
+    }
   }
 
   render() {
