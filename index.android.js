@@ -4,21 +4,22 @@ import React, { Component } from 'react';
 import {
   AppRegistry,
   BackAndroid,
-  Image,
   Navigator,
   ListView,
   StyleSheet,
   Text,
   ToolbarAndroid,
   TouchableHighlight,
-  WebView,
-  DatePickerAndroid,
   View
 } from 'react-native';
 
+var BookmarkScreen = require('./BookmarkScreen');
+var BookmarksIndex = require('./BookmarksIndex');
+//
 // var REQUEST_URL = 'http://192.168.0.11:3000/api/v1/bookmarks/';
 var REQUEST_URL = 'http://10.0.0.13:3000/api/v1/bookmarks/';
-// var REQUEST_URL = 'http://b50-80.local:3000/api/v1/bookmarks/';
+// var REQUEST_URL = 'http://192.168.1.37:3000/api/v1/bookmarks/';
+// // var REQUEST_URL = 'http://b50-80.local:3000/api/v1/bookmarks/';
 
 var _navigator;
 BackAndroid.addEventListener('hardwareBackPress', () => {
@@ -30,6 +31,7 @@ BackAndroid.addEventListener('hardwareBackPress', () => {
 });
 
 class tab_reminder_rn_client extends Component {
+  
   renderScene(route, navigationOperations) {
     _navigator = navigationOperations;
     if (route.name === 'bookmarksIndex') {
@@ -82,202 +84,6 @@ class tab_reminder_rn_client extends Component {
 }
 
 
-class BookmarksIndex extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      dataSource: new ListView.DataSource({
-        rowHasChanged: (row1, row2) => row1 !== row2,
-      }), loaded: false,
-    };
-  }
-
-  componentDidMount() { this.fetchData(); }
-
-  fetchData() {
-    fetch(REQUEST_URL)
-    .then((response) => response.json())
-    .then((responseData) => {
-      this.setState({
-        dataSource: this.state.dataSource.cloneWithRows(responseData),
-        loaded: true,
-      });
-    })
-    .done();
-  }
-
-  render() {
-    if (!this.state.loaded) {
-      return this.renderLoadingView();
-    }
-
-    return (
-      <ListView
-        dataSource = {this.state.dataSource}
-        renderRow = {this.renderBookmark}
-        style = {styles.listView}
-      />
-    );
-  }
-
-  renderLoadingView() {
-    return (
-      <View style={styles.container}>
-        <Text>Loading ... </Text>
-      </View>
-    );
-  }
-
-  renderBookmark(bookmark) {
-    return (
-      <TouchableHighlight onPress={() => {
-        _navigator.push({ name: 'bookmarkScreen', bookmark: bookmark.id, bookmarkName: bookmark.name });
-      }}>
-        <View style={styles.container}>
-          <Text>{bookmark.name}</Text>
-          <Text> ({bookmark.url})</Text>
-        </View>
-      </TouchableHighlight>
-    );
-  }
-}
-
-
-
-class BookmarkScreen extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      bookmark: null,
-    };
-  }
-
-  componentWillReceiveProps(){
-    console.log('componentWillReceiveProps');
-    this.props.method && console.log(this.props.method);
-    if (this.props.method && this.props.method.fetchAction === 'POST') {
-      this.postData();
-    } else if (this.props.method && this.props.method.fetchAction === 'PATCH') {
-      this.patch();
-    } else if (this.props.method && this.props.method.fetchAction === 'SNOOZE') {
-      this.patch();
-    } else if  (this.props.method && this.props.method.fetchAction === 'DELETE') {
-      this.deleteBookmark();
-    } else {
-      this.fetchData();
-    }
-  }
-
-  componentDidMount() { this.fetchData(); }
-
-  fetchData() {
-    fetch(REQUEST_URL + this.props.bookmark)
-    .then((response) => response.json())
-    .then((responseData) => {
-      this.setState({
-        bookmarkData: responseData,
-      });
-    })
-    .done();
-  }
-
-  postData() {
-    fetch(REQUEST_URL + this.props.bookmark, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-         firstParam: 'yourValue',
-         secondParam: 'yourOtherValue',
-      })
-    })
-  }
-  patchData() {
-    fetch(REQUEST_URL + this.props.bookmark, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-         firstParam: 'yourValue',
-         secondParam: 'yourOtherValue',
-      })
-    })
-  }
-  patchSnooze() {
-    fetch(REQUEST_URL + this.props.bookmark, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-         snooze_until: this.props.bookmark.snooze_until,
-      })
-    })
-  }
-
-  deleteBookmark() {
-    console.log("deleting bookmark");
-    fetch(REQUEST_URL + this.props.bookmark, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    }).then(_navigator.pop())
-  }
-
-  async showPicker(stateKey, options) {
-    try {
-      var newState = {};
-      const {action, year, month, day} = await DatePickerAndroid.open(options);
-      if (action === DatePickerAndroid.dismissedAction) {
-        newState[stateKey + 'Text'] = 'dismissed';
-      } else {
-        var date = new Date(year, month, day);
-        newState[stateKey + 'Text'] = date.toLocaleDateString();
-        newState[stateKey + 'Date'] = date;
-      }
-      this.setState(newState);
-    } catch ({code, message}) {
-      console.warn(`Error in example '${stateKey}': `, message);
-    }
-  }
-
-  render() {
-    if (!this.state.bookmarkData) {
-      return this.renderLoadingView();
-    }
-
-    return this.renderBookmark(this.state.bookmarkData);
-  }
-
-  renderLoadingView() {
-    return (
-      <View style={styles.container}>
-        <Text>Loading ... </Text>
-      </View>
-    );
-  }
-
-  renderBookmark(bookmark) {
-    return (
-      <View>
-        <Text>{bookmark.url}</Text>
-        <WebView
-          style={styles.webView}
-          source={{html: bookmark.scraped_content}}
-          scalesPageToFit={this.state.scalesPageToFit}
-        />
-      </View>
-    );
-  }
-}
-
 var toolbarActions = [
   {title: 'Create', icon: require('image!ic_create_black_48dp'), show: 'always'},
   {title: 'Snooze', icon: require('image!ic_schedule_black_48dp'), show: 'always'},
@@ -298,6 +104,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
+
+
   toolbar: {
     backgroundColor: '#a9a9a9',
     height: 56,
@@ -306,9 +114,6 @@ const styles = StyleSheet.create({
      margin: 10,
      paddingTop: 20,
      backgroundColor: '#F5FCFF',
- },
-   webView: {
-     height: 350,
  },
 });
 
