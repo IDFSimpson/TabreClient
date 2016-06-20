@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react';
 import {
-  TimePickerAndroid,
+  DatePickerAndroid,
   StyleSheet,
   Text,
   WebView,
@@ -23,14 +23,17 @@ class BookmarkScreen extends Component {
 
   componentWillReceiveProps(){
     console.log('componentWillReceiveProps');
-    this.props.method && console.log(this.props.method);
-    if (this.props.method && this.props.method.fetchAction === 'POST') {
+
+    if (this.props.method && this.props.method.fetchAction && this.props.method.fetchAction === 'POST') {
       this.postData();
-    } else if (this.props.method && this.props.method.fetchAction === 'PATCH') {
+    } else if (this.props.method && this.props.method.fetchAction && this.props.method.fetchAction === 'PATCH') {
       this.patch();
-    } else if (this.props.method && this.props.method.fetchAction === 'SNOOZE') {
-      this.patch();
-    } else if  (this.props.method && this.props.method.fetchAction === 'DELETE') {
+    } else if (this.props.method && this.props.method.fetchAction && this.props.method.fetchAction === 'SNOOZE') {
+      this.showPicker.call(this, 'snooze', {
+                date: this.state.snoozeDate,
+                minDate: new Date(),
+              });
+    } else if  (this.props.method && this.props.method.fetchAction && this.props.method.fetchAction === 'DELETE') {
       this.deleteBookmark();
     } else {
       this.fetchData();
@@ -77,6 +80,7 @@ class BookmarkScreen extends Component {
       })
     })
   }
+
   patchSnooze() {
     fetch(REQUEST_URL + this.props.bookmark, {
       method: 'PATCH',
@@ -85,7 +89,9 @@ class BookmarkScreen extends Component {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-         snooze_until: this.props.bookmark.snooze_until,
+        bookmark: {
+          snooze_until: this.state.snoozeDate,
+        }
       })
     })
   }
@@ -113,6 +119,8 @@ class BookmarkScreen extends Component {
         newState[stateKey + 'Date'] = date;
       }
       this.setState(newState);
+      // todo Don't do this here
+      this.patchSnooze.call(this);
     } catch ({code, message}) {
       console.warn(`Error in example '${stateKey}': `, message);
     }
