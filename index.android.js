@@ -15,6 +15,7 @@ import {
 
 var BookmarkScreen = require('./BookmarkScreen');
 var BookmarksIndex = require('./BookmarksIndex');
+var BookmarkNew    = require('./BookmarkNew');
 //
 // var REQUEST_URL = 'http://192.168.0.11:3000/api/v1/bookmarks/';
 var REQUEST_URL = 'http://10.0.0.13:3000/api/v1/bookmarks/';
@@ -31,11 +32,22 @@ BackAndroid.addEventListener('hardwareBackPress', () => {
 });
 
 class tab_reminder_rn_client extends Component {
-  
+
   renderScene(route, navigationOperations) {
     _navigator = navigationOperations;
     if (route.name === 'bookmarksIndex') {
-      return <BookmarksIndex navigator={navigationOperations} />
+      return (
+        <View style={{flex: 1}}>
+          <ToolbarAndroid
+            onActionSelected={this._onActionSelected.bind(this, toolbarIndexActions)}
+            actions={toolbarIndexActions}
+            style={styles.toolbar}
+            titleColor="white"
+            title="All Bookmarks"
+            fetchAction={fetchAction} />
+          <BookmarksIndex navigator={navigationOperations} />
+        </View>
+      );
     }
     else if (route.name === 'bookmarkScreen') {
       var fetchAction = null;
@@ -45,13 +57,27 @@ class tab_reminder_rn_client extends Component {
             navIcon={require('image!android_back_white')}
             onIconClicked={navigationOperations.pop}
             actions={toolbarActions}
-            onActionSelected={this._onActionSelected.bind(this)}
+            onActionSelected={this._onActionSelected.bind(this, toolbarActions)}
             style={styles.toolbar}
             titleColor="white"
             title={route.bookmarkName}
-            navigator={navigationOperations}
             fetchAction={fetchAction} />
           <BookmarkScreen navigator={navigationOperations} bookmark={route.bookmark} method={this.state} />
+        </View>
+      );
+    }
+    else if (route.name === 'bookmarkNew') {
+      return (
+        <View style={{flex: 1}}>
+          <ToolbarAndroid
+            navIcon={require('image!android_back_white')}
+            onIconClicked={navigationOperations.pop}
+            actions={toolbarNewActions}
+            onActionSelected={this._onActionSelected.bind(this, toolbarNewActions)}
+            style={styles.toolbar}
+            titleColor="white"
+            title="New Bookmark" />
+          <BookmarkNew navigator={navigationOperations} />
         </View>
       );
     }
@@ -67,9 +93,14 @@ class tab_reminder_rn_client extends Component {
     );
   }
 
-  _onActionSelected(position) {
-    console.log('Selected ' + toolbarActions[position].title);
-    switch (toolbarActions[position].title) {
+  _onActionSelected(toolbar, position) {
+    switch (toolbar[position].title) {
+      case ("Create"):
+        _navigator.push({ name: 'bookmarkNew'});
+        break;
+      case ("Refresh"):
+        this.setState({fetchAction: 'REFRESH'});
+        break;
       case ("Snooze"):
         this.setState({fetchAction: 'SNOOZE'});
         break;
@@ -80,12 +111,10 @@ class tab_reminder_rn_client extends Component {
         console.log('Fall through');
     }
   }
-
 }
 
 
 var toolbarActions = [
-  {title: 'Create', icon: require('image!ic_create_black_48dp'), show: 'always'},
   {title: 'Snooze', icon: require('image!ic_schedule_black_48dp'), show: 'always'},
   {title: 'View Website'},
   {title: 'Refresh'},
@@ -94,6 +123,15 @@ var toolbarActions = [
   {title: 'Add Tag'},
   {title: 'Remove Bookmark'},
   {title: 'Settings', icon: require('image!ic_settings_black_48dp'), show: 'always'},
+];
+var toolbarIndexActions = [
+  {title: 'Create', icon: require('image!ic_create_black_48dp'), show: 'always'},
+  {title: 'Settings', icon: require('image!ic_settings_black_48dp'), show: 'always'},
+  {title: 'Refresh'},
+];
+var toolbarNewActions = [
+  {title: 'Settings', icon: require('image!ic_settings_black_48dp'), show: 'always'},
+  {title: 'Refresh'},
 ];
 
 const styles = StyleSheet.create({
