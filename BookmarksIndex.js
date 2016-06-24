@@ -9,9 +9,7 @@ import {
   View,
 } from 'react-native';
 
-// var REQUEST_URL = 'http://192.168.0.11:3000/api/v1/bookmarks/';
-var REQUEST_URL = 'http://10.0.0.13:3000/api/v1/bookmarks/';
-// var REQUEST_URL = 'http://b50-80.local:3000/api/v1/bookmarks/';
+const REQUEST_URL = 'https://tabre.herokuapp.com/api/v1/bookmarks/';
 
 class BookmarksIndex extends Component {
   constructor(props) {
@@ -62,15 +60,13 @@ class BookmarksIndex extends Component {
 
   renderBookmark(bookmark) {
     console.log("find the index render");
-    // console.log(this.props.navigator);
-    // console.log(this.state.navigator);
     return (
       <TouchableHighlight onPress={() => {
         this.props.navigator.push({ name: 'bookmarkScreen', bookmark: bookmark.id, bookmarkName: bookmark.name, navigator: this.props.navigator });
       }}>
         <View style={styles.container}>
-          <Text>{bookmark.name}</Text>
-          <Text>({bookmark.url})</Text>
+          <Text style={{fontWeight: 'bold'}}>{bookmark.name}</Text>
+          <Text>{bookmark.url}</Text>
         </View>
       </TouchableHighlight>
     );
@@ -80,11 +76,10 @@ class BookmarksIndex extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
+    padding: 20,
+    margin: 5,
   },
    listView: {
      margin: 10,
