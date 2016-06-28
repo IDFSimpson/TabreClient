@@ -9,9 +9,7 @@ import {
   View,
 } from 'react-native';
 
-// var REQUEST_URL = 'http://192.168.0.11:3000/api/v1/bookmarks/';
-var REQUEST_URL = 'http://10.0.0.13:3000/api/v1/bookmarks/';
-// var REQUEST_URL = 'http://b50-80.local:3000/api/v1/bookmarks/';
+const REQUEST_URL = 'https://tabre.herokuapp.com/api/v1/bookmarks/';
 
 class BookmarkScreen extends Component {
   constructor(props) {
