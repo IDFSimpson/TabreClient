@@ -9,32 +9,20 @@ import {
   View,
 } from 'react-native';
 
-const REQUEST_URL = 'https://tabre.herokuapp.com/api/v1/bookmarks/';
+var AjaxRequests = require('./AjaxRequests');
 
 class BookmarksIndex extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // navigator: this.props.navigator,
       dataSource: new ListView.DataSource({
         rowHasChanged: (row1, row2) => row1 !== row2,
       }), loaded: false,
     };
-  }
+    }
 
-  componentDidMount() { this.fetchData(); }
+  componentWillMount() { AjaxRequests.fetchIndex.call(this) }
 
-  fetchData() {
-    fetch(REQUEST_URL)
-    .then((response) => response.json())
-    .then((responseData) => {
-      this.setState({
-        dataSource: this.state.dataSource.cloneWithRows(responseData),
-        loaded: true,
-      });
-    })
-    .done();
-  }
 
   render() {
     if (!this.state.loaded) {

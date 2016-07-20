@@ -10,17 +10,14 @@ import {
   Text,
   ToolbarAndroid,
   TouchableHighlight,
+  DatePickerAndroid,
   View
 } from 'react-native';
 
 var BookmarkScreen = require('./BookmarkScreen');
 var BookmarksIndex = require('./BookmarksIndex');
 var BookmarkNew    = require('./BookmarkNew');
-//
-// var REQUEST_URL = 'http://192.168.0.11:3000/api/v1/bookmarks/';
-var REQUEST_URL = 'http://10.0.0.13:3000/api/v1/bookmarks/';
-// var REQUEST_URL = 'http://192.168.1.37:3000/api/v1/bookmarks/';
-// // var REQUEST_URL = 'http://b50-80.local:3000/api/v1/bookmarks/';
+var AjaxRequests   = require('./AjaxRequests');
 
 var _navigator;
 BackAndroid.addEventListener('hardwareBackPress', () => {
@@ -33,19 +30,29 @@ BackAndroid.addEventListener('hardwareBackPress', () => {
 
 class tab_reminder_rn_client extends Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      // navigator: this.props.navigator,
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 !== row2,
+      }), loaded: false,
+    };
+  }
+
   renderScene(route, navigationOperations) {
     _navigator = navigationOperations;
     if (route.name === 'bookmarksIndex') {
       return (
         <View style={{flex: 1}}>
           <ToolbarAndroid
-            onActionSelected={this._onActionSelected.bind(this, toolbarIndexActions)}
+            onActionSelected={this._onActionSelected.bind(this, toolbarIndexActions, navigationOperations)}
             actions={toolbarIndexActions}
             style={styles.toolbar}
             titleColor="white"
             title="All Bookmarks"
             fetchAction={fetchAction} />
-          <BookmarksIndex navigator={navigationOperations} />
+          <BookmarksIndex navigator={navigationOperations} bookmarks={this.state.dataSource} />
         </View>
       );
     }
@@ -57,7 +64,7 @@ class tab_reminder_rn_client extends Component {
             navIcon={require('image!android_back_white')}
             onIconClicked={navigationOperations.pop}
             actions={toolbarActions}
-            onActionSelected={this._onActionSelected.bind(this, toolbarActions)}
+            onActionSelected={this._onActionSelected.bind(this, toolbarActions, navigationOperations)}
             style={styles.toolbar}
             titleColor="white"
             title={route.bookmarkName}
@@ -73,7 +80,7 @@ class tab_reminder_rn_client extends Component {
             navIcon={require('image!android_back_white')}
             onIconClicked={navigationOperations.pop}
             actions={toolbarNewActions}
-            onActionSelected={this._onActionSelected.bind(this, toolbarNewActions)}
+            onActionSelected={this._onActionSelected.bind(this, toolbarNewActions, navigationOperations)}
             style={styles.toolbar}
             titleColor="white"
             title="New Bookmark" />
@@ -93,22 +100,45 @@ class tab_reminder_rn_client extends Component {
     );
   }
 
-  _onActionSelected(toolbar, position) {
+  _onActionSelected(toolbar, navigator, position) {
     switch (toolbar[position].title) {
       case ("Create"):
-        _navigator.push({ name: 'bookmarkNew'});
+        navigator.push({ name: 'bookmarkNew'});
         break;
       case ("Refresh"):
-        this.setState({fetchAction: 'REFRESH'});
+        AjaxRequests.fetchIndex.call(this);
         break;
       case ("Snooze"):
-        this.setState({fetchAction: 'SNOOZE'});
+        this.setState({fetchAction: this.showPicker});
         break;
       case ("Remove Bookmark"):
-        this.setState({fetchAction: 'DELETE'});
+        this.setState({fetchAction: AjaxRequests.deleteBookmark});
         break;
       default:
         console.log('Fall through');
+    }
+  }
+
+  async showPicker() {
+    var stateKey = 'snooze';
+    var options = {
+        date: Date.parse(this.state.bookmarkData.snooze_until),
+        minDate: new Date(),
+      };
+    try {
+      var newState = {};
+      const {action, year, month, day} = await DatePickerAndroid.open(options);
+      if (action === DatePickerAndroid.dismissedAction) {
+        newState[stateKey + 'Text'] = 'dismissed';
+      } else {
+        var date = new Date(year, month, day);
+        newState[stateKey + 'Text'] = date.toLocaleDateString();
+        newState[stateKey + 'Date'] = date;
+        debugger;
+        AjaxRequests.patchSnooze.call(this);
+      }
+    } catch ({code, message}) {
+      console.warn(`Error in example '${stateKey}': `, message);
     }
   }
 }
