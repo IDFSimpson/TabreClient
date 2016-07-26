@@ -146,22 +146,14 @@ class tab_reminder_rn_client extends Component {
 
 var toolbarActions = [
   {title: 'Snooze', icon: require('image!ic_schedule_black_48dp'), show: 'always'},
-  {title: 'View Website'},
   {title: 'Refresh'},
-  {title: 'Share Link'},
-  {title: 'Make Note'},
-  {title: 'Add Tag'},
   {title: 'Remove Bookmark'},
-  {title: 'Settings', icon: require('image!ic_settings_black_48dp'), show: 'always'},
 ];
 var toolbarIndexActions = [
   {title: 'Create', icon: require('image!ic_create_black_48dp'), show: 'always'},
-  {title: 'Settings', icon: require('image!ic_settings_black_48dp'), show: 'always'},
   {title: 'Refresh'},
 ];
 var toolbarNewActions = [
-  {title: 'Settings', icon: require('image!ic_settings_black_48dp'), show: 'always'},
-  {title: 'Refresh'},
 ];
 
 const styles = StyleSheet.create({
