@@ -56,6 +56,7 @@ var AjaxRequests = {
         }
       })
     })
+    .then(this.props.navigator.pop())
   },
 
   deleteBookmark() {
@@ -67,7 +68,6 @@ var AjaxRequests = {
       },
     })
     .then(this.props.navigator.pop())
-    .then(AjaxRequests.fetchIndex.call(this))
   }
 }
 
